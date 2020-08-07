@@ -421,5 +421,11 @@ enum class ShipType(
     influence = 4,
     maintenance = 1600,
     constructionTime = 15
+  ),
+  CHARTER(
+    materials = mapOf(),
+    influence = 5,
+    maintenance = 50,
+    constructionTime = 0
   )
 }

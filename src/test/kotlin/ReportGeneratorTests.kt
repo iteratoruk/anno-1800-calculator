@@ -401,4 +401,68 @@ class ReportGeneratorTests {
     val islandReport = phaseReport.islands[0]
     assertEquals(0F, islandReport.consumption[Goods.WORK_CLOTHES])
   }
+
+  @Test
+  fun shouldAccountForTradeRoutesWhenProducingEstimatesInGameWithTwoOrMoreIslands() {
+    // given
+    val a = GamePhaseIsland(
+      name = "Island A",
+      meetBasicNeeds = true,
+      buildingGroups = listOf(
+        GamePhaseIslandBuildingGroup(
+          name = "Residences",
+          publicServices = mapOf(PublicService.MARKETPLACE to 1F),
+          buildings = listOf(
+            GamePhaseIslandBuilding(BuildingType.FARMER_RESIDENCE, 320),
+            // this island does not have enough fish!
+            GamePhaseIslandBuilding(BuildingType.FISHERY, 2)
+          )
+        )
+      )
+    )
+    val b = GamePhaseIsland(
+      name = "Island B",
+      meetBasicNeeds = true,
+      buildingGroups = listOf(
+        GamePhaseIslandBuildingGroup(
+          name = "Residences",
+          publicServices = mapOf(PublicService.MARKETPLACE to 1F),
+          buildings = listOf(
+            GamePhaseIslandBuilding(BuildingType.FARMER_RESIDENCE, 320),
+            // this island has too many fish!
+            GamePhaseIslandBuilding(BuildingType.FISHERY, 6)
+          )
+        )
+      )
+    )
+    val game = Game(
+      name = "My Simple Game",
+      phases = listOf(GamePhase(
+        name = "Main island farmers",
+        islands = listOf(a),
+        tradeRoutes = listOf(
+          GamePhaseTradeRoute(
+            name = "Fish from B to A",
+            goods = mapOf(Goods.FISH to listOf(b, a)),
+            strategy = GamePhaseIslandTradeRouteStrategy.EXCESS,
+            ships = mapOf(ShipType.SCHOONER to 1)
+          )
+        )
+      )))
+    // when
+    val report = generator.generateReport(game)
+    // then
+    val phaseReport = report.phases[0]
+    val islandAReport = phaseReport.islands[0]
+    val islandBReport = phaseReport.islands[1]
+    val fishProducedOnIslandA = 4F
+    val fishProducedOnIslandB = 12F
+    val fishConsumedOnIslandsAandB = 320 * 0.0004166667F * 60;
+    val surplusOnB = fishProducedOnIslandB - fishConsumedOnIslandsAandB
+    assertEquals(fishProducedOnIslandA, islandAReport.production[Goods.FISH])
+    assertEquals(surplusOnB, islandAReport.tradeRoutes[Goods.FISH])
+    assertEquals(-surplusOnB, islandBReport.tradeRoutes[Goods.FISH])
+    assertEquals((fishProducedOnIslandA + surplusOnB) - fishConsumedOnIslandsAandB, islandAReport.balanceAfterTrade[Goods.FISH])
+    assertEquals((fishProducedOnIslandB - surplusOnB) - fishConsumedOnIslandsAandB, islandAReport.balanceAfterTrade[Goods.FISH])
+  }
 }

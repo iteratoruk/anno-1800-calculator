@@ -20,8 +20,10 @@ data class ReportGamePhaseIsland(
   val population: Map<PopulationTier, Int>, // the total population for each tier on the island
   val consumption: Map<Goods, Float>, // the amount of goods of each type consumed by all buildings on the island
   val production: Map<Goods, Float>, // the amount of goods of each type produced by all buildings on the island
+  val tradeRoutes: Map<Goods, Float>, // the amount of goods of each type acquired for this island via trade routes
   val buildings: Map<BuildingType, ReportGamePhaseIslandBuilding>, // the amount of goods produced or consumed by each building type on the island
   val balance: Map<Goods, Float>,
+  val balanceAfterTrade: Map<Goods, Float>,
   val solutions: Map<BuildingType, ReportGamePhaseIslandBuilding>
 ) {
   fun csv(directory: File, prefix: String) {}
@@ -47,8 +49,10 @@ class ReportGenerator {
             population = calculateIslandPopulationTotals(island),
             consumption = calculateIslandConsumptionTotals(island),
             production = calculateIslandProductionTotals(island),
+            tradeRoutes = calculateTradeRouteGoods(phase, island),
             buildings = calculateIslandBuildingReports(island),
             balance = calculateBalance(island),
+            balanceAfterTrade = mapOf(),
             solutions = solveForGamePhaseIsland(game, phase, island)
           )
         }
@@ -88,6 +92,26 @@ class ReportGenerator {
     var buildingItems: List<BuildingItem> = listOf(), // any building items required
     var tradeRoutes: List<GamePhaseTradeRoute> = listOf() // and trade routes required (or that satisfied this need)
   )
+
+  private fun calculateTradeRouteGoods(phase: GamePhase, island: GamePhaseIsland): Map<Goods, Float> {
+//    val relevant = phase.tradeRoutes.filter { route -> route.goods.any { it.value.contains(island) } }
+//    println("Found relevant trade route(s) for island ${island.name}: $relevant")
+//    return relevant.map { route ->
+//      route.strategy.islandGoods(route, route.goods.flatMap { trade ->
+//        trade.value.map { it to calculateBalance(it) }
+//      }.toMap())
+//    }.fold(ZERO_GOODS) { aggregateGoods, routeGoods ->
+//      aggregateGoods.map { goods ->
+//        println("Evaluating goods $goods")
+//        val amount = routeGoods[island]?.get(goods.key) ?: 0F
+//        println("Found $amount ${goods.key}")
+//        val balance = goods.value + amount
+//        println("Balance: $balance")
+//        goods.key to balance
+//      }.toMap()
+//    }
+    return mapOf()
+  }
 
   private fun calculateBalance(island: GamePhaseIsland): Map<Goods, Float> {
     val production = calculateIslandProductionTotals(island)

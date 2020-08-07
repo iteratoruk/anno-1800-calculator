@@ -1,4 +1,10 @@
+import react.dom.*
+import kotlin.browser.document
 
 fun main() {
-  println("Hello, world!")
+  render(document.getElementById("root")) {
+    h1 {
+      +"Hello, React+Kotlin/JS!"
+    }
+  }
 }
